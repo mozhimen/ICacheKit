@@ -48,28 +48,32 @@ public struct CacheKAppStorage<Value> {
         if _storage == nil {
             let key = _key ?? {
                 let mirror = Mirror(reflecting: instance)
-                let key = mirror.children.first { $0.label == keyPath.propertyName }?.label ?? keyPath.propertyName
-                _key = key
-                return key
+                let propertyName = String("\(keyPath)".split(separator: ".").last!)
+                return propertyName
             }()
-            _storage = switch _defaultValue{
-            case is Int:
-                AppStorage(wrappedValue: _defaultValue as! Int, key) as? AppStorage<Value>
-            case is String:
-                AppStorage(wrappedValue: _defaultValue as! String, key) as? AppStorage<Value>
-            case is Bool:
-                AppStorage(wrappedValue: _defaultValue as! Bool, key) as? AppStorage<Value>
-            case is Double:
-                AppStorage(wrappedValue: _defaultValue as! Double, key) as? AppStorage<Value>
-            case is URL:
-                AppStorage(wrappedValue: _defaultValue as! URL, key) as? AppStorage<Value>
-            case is Data:
-                AppStorage(wrappedValue: _defaultValue as! Data, key) as? AppStorage<Value>
-            default:
-                fatalError()
-            }
+            _key = key
+            _storage = createAppStorage(for: _defaultValue, key: _key!)
         }
         return _storage!
+    }
+    
+    private func createAppStorage(for value: Value, key: String) -> AppStorage<Value> {
+        switch value {
+        case let int as Int:
+            return AppStorage(wrappedValue: int, key) as! AppStorage<Value>
+        case let string as String:
+            return AppStorage(wrappedValue: string, key) as! AppStorage<Value>
+        case let bool as Bool:
+            return AppStorage(wrappedValue: bool, key) as! AppStorage<Value>
+        case let double as Double:
+            return AppStorage(wrappedValue: double, key) as! AppStorage<Value>
+        case let url as URL:
+            return AppStorage(wrappedValue: url, key) as! AppStorage<Value>
+        case let data as Data:
+            return AppStorage(wrappedValue: data, key) as! AppStorage<Value>
+        default:
+            fatalError("Unsupported type for AppStorage")
+        }
     }
 }
 
